@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        一万个柠檬
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            小米ax3600刷openwrt系统教程
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <p>###为什么要刷OpenWrt<br>小米路由器本身安装的系统的功能受限，如果你把路由器装了openwrt后除可以做传统路由的工作外，还可以灵活的安装各种应用，如端口镜像、iptv转播，科学上网软件，v2ray，nfs，迅雷下载等等。只要你装了你就离不开了。<br>安装方法大致分为以下几部分：</p>
+<ol>
+<li>下载所需资源。</li>
+<li>回退现有路由器版本（最近版本不支持破解）。</li>
+<li>获取root权限。</li>
+<li>拷贝OpenWrt镜像到路由器中。</li>
+<li>ssh登录进入Linux系统刷机、重启。</li>
+<li>设置OpenWrt。</li>
+</ol>
+<p>###下载所需资源<br>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1lmJVdT14sPDVOZ3M9c7PBQ?pwd=CX66">https://pan.baidu.com/s/1lmJVdT14sPDVOZ3M9c7PBQ?pwd=CX66</a><br>提取码：CX66<br><img src="https://i.postimg.cc/PxW0HT0v/1.webp" alt="资源.png"></p>
+<p>这里提供了OpenWrt稳定版本，大小刚好卡在30M以内，超过30M的OpenWrt镜像文件无法刷入，需要重新分区（风险较大，不推荐！），重新分区的方法这里不做介绍。putty的作用就是为了登录到你路由器里面的，和xshell、Mbaxterm一样，你喜欢用哪个都行。WinSCP的作用就是为了把你的OpenWrt镜像文件从你的windows电脑拷贝到路由器里面。图中第一个文件是为了降低小米当前系统的文件，降低到1.0.17版本才能破解。<br>###回退现有路由器版本<br>需要将小米路由器的内置系统回退到1.0.17版本，进入小米路由器后（有线、无线方式都可以），记住你的PPPoE拨号的用户名和密码，方便后续配置，点击系统升级：<br><img src="https://i.postimg.cc/XqxhZxjV/2.webp" alt="系统升级"><br>然后点击手动升级<br><img src="https://i.postimg.cc/0j9F2hqW/3.webp" alt="手动升级.png"><br>清除用户配置<br><img src="https://i.postimg.cc/nzbNNCSt/4.webp" alt="清除所有配置"><br>等待1，2分钟后，重新刷新页面（如果你是无线连接，需要电脑重新连接WIFI，这时候是没有密码的），然后进入路由器（网关地址：192.168.31.1），随便配置一下（很快要被刷掉）查看当前版本为稳定版本1.0.17即可。<br><img src="https://i.postimg.cc/VsF2Hsj3/5.webp" alt="稳定版本.png"><br>紧接着查看当前浏览器的地址栏，记录stok后面的这一串数（蓝色标记部分，拷贝到记事本中，后续待用）<br><img src="https://i.postimg.cc/tCC800k7/6.webp" alt="stok"></p>
+<p>###获取root权限</p>
+<ol>
+<li>获取 SSH<br><a target="_blank" rel="noopener" href="http://192.168.31.1/cgi-bin/luci/;stok=/api/misystem/set_config_iotdev?bssid=Xiaomi&user_id=longdike&ssid=-h;%20nvram%20set%20ssh_en=1;%20nvram%20commit;%20sed%20-i%20%27s/channel=.*/channel=%5C%22debug%5C%22/g%27%20/etc/init.d/dropbear;%20/etc/init.d/dropbear%20start;">http://192.168.31.1/cgi-bin/luci/;stok=/api/misystem/set_config_iotdev?bssid=Xiaomi&amp;user_id=longdike&amp;ssid=-h%3B%20nvram%20set%20ssh_en%3D1%3B%20nvram%20commit%3B%20sed%20-i%20&#39;s%2Fchannel%3D.*%2Fchannel%3D%5C%22debug%5C%22%2Fg&#39;%20%2Fetc%2Finit.d%2Fdropbear%3B%20%2Fetc%2Finit.d%2Fdropbear%20start%3B</a><br>用刚刚保存的stok，补全stok&#x3D;后面的数据，然后复制到浏览器打开，显示{“code”:0}就说明成功了。</li>
+<li>修改默认 SSH 密码为 admin<br><a target="_blank" rel="noopener" href="http://192.168.31.1/cgi-bin/luci/;stok=/api/misystem/set_config_iotdev?bssid=Xiaomi&user_id=longdike&ssid=-h;%20echo%20-e%20%27admin%5Cnadmin%27%20%7C%20passwd%20root;">http://192.168.31.1/cgi-bin/luci/;stok=/api/misystem/set_config_iotdev?bssid=Xiaomi&amp;user_id=longdike&amp;ssid=-h%3B%20echo%20-e%20&#39;admin%5Cnadmin&#39;%20%7C%20passwd%20root%3B</a><br>补全stok&#x3D;后面的数据，然后复制到浏览器打开,显示{“code”:0}就说明成功了。</li>
+</ol>
+<p>###拷贝OpenWrt镜像到路由器中<br>使用WinScp工具进入小米后台，将小于29MB的ubi格式固件传至tmp根目录下。<br><img src="https://i.postimg.cc/MKPNqs35/7.webp" alt="winscp登录"><br>这里协议选择scp，主机名就是你的路由器的IP，填小米默认的192.168.31.1，端口不变，用户名填写root，密码就是刚刚设置的admin，然后点击登录。<br><img src="https://i.postimg.cc/K81Vznd2/8.webp" alt="点击更新.png"><br>点击更新，然后拷贝镜像文件（ubi后缀的文件）到tmp目录中。<br><img src="https://i.postimg.cc/YCTPmvHm/9.webp" alt="拖动镜像"><br>通俗一点就是左边找到镜像文件，然后拖到右边tmp目录中去。<br><img src="https://i.postimg.cc/FKcBbhrC/10.webp" alt="拷贝镜像过程"></p>
+<p>###ssh登录进入Linux系统刷机、重启。<br>准备PUTTY工具，SSH方式登录小米后台，逐一拷贝以下命令：(可以一次拷贝直接邮件粘贴+回车搞定)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">nvram set flag_last_success=0</span><br><span class="line">nvram set flag_boot_rootfs=0</span><br><span class="line">nvram set flag_boot_success=1</span><br><span class="line">nvram set flag_try_sys1_failed=0</span><br><span class="line">nvram set flag_try_sys2_failed=0</span><br><span class="line">nvram set boot_wait=on</span><br><span class="line">nvram set uart_en=1</span><br><span class="line">nvram set telnet_en=1</span><br><span class="line">nvram set ssh_en=1</span><br><span class="line">nvram commit</span><br></pre></td></tr></table></figure>
+
+<p>继续逐一输入以下命令（这些命令建议一行一行执行）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ubiformat /dev/mtd12 -y -f /tmp/请替换固件包名.ubi</span><br><span class="line">nvram set flag_last_success=0</span><br><span class="line">nvram set flag_boot_rootfs=0</span><br><span class="line">nvram commit</span><br><span class="line">reboot</span><br></pre></td></tr></table></figure>
+<p><strong>注：若在执行ubiformat命令时，出现 “please, first detach mtd12 (&#x2F;dev&#x2F;mtd12) from ubi0”，则将mtd12改成mtd13，后面命令里的0改为1</strong><br>命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ubiformat /dev/mtd13 -y -f /tmp/请替换固件包名.ubi</span><br><span class="line">nvram set flag_last_success=1</span><br><span class="line">nvram set flag_boot_rootfs=1</span><br><span class="line">nvram commit</span><br><span class="line">reboot</span><br></pre></td></tr></table></figure>
+<p><img src="https://i.postimg.cc/sX4H8KZp/11.webp" alt="刷机过程"><br>刷机完成后会断掉连接，这时候路由器的系统就已经是OpenWrt系统了。<br>###设置OpenWrt<br>首先你的电脑得重新连接到路由器（无线方式），有线的话本身就连着无所谓。那么你会在无线WIFI信号中看到一个叫做OpenWrt的wifi信号，没有密码你直接连接。然后IP地址是多少呢？你可以通过cmd窗口输入ipconfig命令查看网关地址，就是IP地址了。<br><img src="https://i.postimg.cc/gjMScJsj/12.webp" alt="网关地址"><br>浏览器输入IP地址，登录到路由器中。<br><img src="https://i.postimg.cc/QCNYr5pv/13.webp" alt="登录OpenWrt"><br><strong>注：用户名为root，密码默认填写password</strong><br>进入到系统界面后，首先需要设置PPPOE拨号（家庭用户），点击网络、接口。<br><img src="https://i.postimg.cc/BZNwBY33/14.webp" alt="PPPOE设置.png"><br>点击WAN口中的修改按钮。<br><img src="https://i.postimg.cc/wTv4fXxm/15.webp" alt="PPPOE用户密码.png"><br>填写运营商分配给你的宽带账号和密码，保存应用即可上网。<br>下来是设置一下WIFI方面的功能，因为目前的WIFI是没有密码公开的，谁都可以接入。<br>点击网络、无线进入到以下页面。从页面上看是有三个通道，有一个AIOT的那个就没效了（就是小米快速发现设备的功能）。<br><img src="https://i.postimg.cc/zfmdG4CC/16.webp" alt="wifi设置"><br>这里可以给每个通道修改一下名字（基本设置里面），否则你不清楚你的手机连接到了哪个上面。我这里radio0是AC模式，频率5G，也就是俗称的WIFI5，radio1是AX模式，频率5G，也就是WIFI6（我手机连接的这个我感觉挺好用），第三个radio2是AX模式，频率2.4G，像小米的智能家居什么的就只能连接到这个上面。<br>修改wifi密码点击无线安全可以看到修改页码的页面，我这里使用了安全性较高的WPA2-PSK加密方式，保存应用后重新使用密码连接wifi。<br><img src="https://i.postimg.cc/d085kn6z/17.webp" alt="wifi密码类型"><br>最后一般都会改一下DHCP租期，默认是12h，太短了。点击网络、LAN口、修改按钮。<br><img src="https://i.postimg.cc/hjsMMjHs/18.webp" alt="DHCP修改"><br>改为1200或者2400。<br><img src="https://i.postimg.cc/3Nb15qrD/19.webp" alt="DHCP租期修改"></p>
+<p>到此为止，恭喜你，基本的上网功能就配置好了，其余功能还需各位小伙伴自己研究折腾。</p>
+<p>###写在最后<br>如果万一刷坏了，只要你没修改分区，都可以使用小米官方救砖工具来恢复系统。具体步骤百度一下，这里不做介绍。<br><img src="https://i.postimg.cc/Pf62wCbr/20.webp" alt="修复工具.png"><br>还有一点需要知道，我们目前刷的系统还是可以恢复成原先的小米系统的。只需要用putty以root身份进入到路由器（OpenWrt系统）中，<br><img src="https://i.postimg.cc/4NqPWjFD/21.webp" alt="root"><br><strong>注：这里的IP已经为OpenWrt的IP地址，密码为刚才的默认密码password</strong><br>然后执行以下命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fw_setenv flag_last_success 1</span><br><span class="line">fw_setenv flag_boot_rootfs 1</span><br><span class="line">reboot</span><br></pre></td></tr></table></figure>
+<p>等待蓝灯亮起，即可进入小米后台。</p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 <a class="flink" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>-<a class="flink" target="_blank" rel="noopener" href="https://github.com/sanjinhub/hexo-theme-geek">Geek</a>.
+        <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label>
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
